@@ -1,0 +1,36 @@
+{
+    "manifest_version": 2,
+    "name": "Lazy Leetcode",
+    "description": "Just be lazy, take the answers from discussion",
+    "version": "1.0",
+    "icons": {
+        "128": "seagull.png"
+    },
+    "page_action": {
+        "default_icon": "seagull.png",
+        "default_popup": "popup.html",
+        "default_title": "PageFontStyle"
+    },
+    "background": {
+        "page": "background.html",
+        "persistent": false
+    },
+    "content_scripts": [{
+        "matches": [
+            "https://leetcode.com/problems/*"
+        ],
+        "js": [
+            "content.js",
+            "jquery-3.6.0.min.js",
+            "showdown-1.9.0.min.js",
+            "highlight.min.js"
+        ],
+        "css": [
+            "github-dark.css"
+        ]
+    }],
+    "permissions": [
+        "tabs",
+        "https://leetcode.com/problems/*"
+    ]
+}
