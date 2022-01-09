@@ -31,11 +31,11 @@ var discuss_post_url = {}; // store the post id which can easily be converted to
 var discuss_post_selection = {}; // which post to look at now
 var possible_function_names = {}; // the possible function name so that we know what to look for in code section
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.log("Message Request: ", request);
     if (request.todo == "showPageAction") {
         // show that our extension is activated
-        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             chrome.pageAction.show(tabs[0].id);
             matched_tab_id.add(tabs[0].id);
             console.log("Tab id set:", matched_tab_id);
@@ -54,8 +54,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                     return_code_result(question_name, request.language);
                 } else {
                     console.log("Accessing again:", question_name, ", with language:", request.language)
-                        // we have not accessed this language before
-                        // start a new http request
+                    // we have not accessed this language before
+                    // start a new http request
                     var data = JSON.stringify({
                         "operationName": "questionTopicsList",
                         "variables": {
@@ -71,7 +71,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                     });
                     var xhr = new XMLHttpRequest();
                     xhr.withCredentials = true;
-                    xhr.addEventListener("readystatechange", function() {
+                    xhr.addEventListener("readystatechange", function () {
                         if (this.readyState === 4 && this.status == 200) {
                             discuss_post_url[question_name][request.language] = [];
                             discuss_post_selection[question_name][request.language] = 0;
@@ -91,8 +91,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 }
             } else {
                 console.log("First access:", question_name, ", with language:", request.language)
-                    // this is the first time we request anything for this language
-                    // start a new http request
+                // this is the first time we request anything for this language
+                // start a new http request
                 var data = JSON.stringify({
                     "operationName": "questionTopicsList",
                     "variables": {
@@ -108,7 +108,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 });
                 var xhr = new XMLHttpRequest();
                 xhr.withCredentials = true;
-                xhr.addEventListener("readystatechange", function() {
+                xhr.addEventListener("readystatechange", function () {
                     if (this.readyState === 4 && this.status == 200) {
                         // we want to save the response url stuffs
                         discuss_post_url[question_name] = {};
@@ -138,6 +138,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                         for (i = 1; i < words.length; i++) {
                             possible_function_name += capitalizeFirstLetter(words[i]);
                         }
+                        for (i = 0; i < request.defs.length; i++) {
+                            possible_function_names[question_name].add(request.defs[i]);
+                        }
+
                         possible_function_names[question_name].add(possible_function_name);
                         console.log("Possible function names:", possible_function_names[question_name])
                         console.log("Post ids:", discuss_post_url[question_name][request.language])
@@ -155,7 +159,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 // handle the tab changes
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     // read changeInfo data and do something with it (like read the url)
     if (changeInfo.url && matched_tab_id.has(tabId)) {
         console.log(changeInfo.url);
@@ -181,7 +185,7 @@ function return_code_result(question_name, language) {
         var xhr = new XMLHttpRequest();
         xhr.withCredentials = true;
 
-        xhr.addEventListener("readystatechange", function() {
+        xhr.addEventListener("readystatechange", function () {
             if (this.readyState === 4 && this.status == 200) {
                 var content = this.response.data.topic.post.content;
                 console.log(content);
@@ -219,7 +223,7 @@ function return_code_result(question_name, language) {
                         }
                     }
                 }
-                chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+                chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     // first get the current tab id
                     var current_tab_id = tabs[0].id;
                     var converter = new showdown.Converter();
@@ -229,6 +233,7 @@ function return_code_result(question_name, language) {
                     }
                     final_solution = final_solution.replaceAll("\\n", "\n").replaceAll("\\t", "  ").trim();
                     var html_code = converter.makeHtml(final_solution);
+                    console.log(final_solution);
                     console.log(html_code); // this will produce the <code></code> tag element
                     chrome.tabs.sendMessage(current_tab_id, { todo: "pasteSolution", solution: html_code, success: true })
                 });
@@ -243,7 +248,7 @@ function return_code_result(question_name, language) {
         xhr.responseType = 'json';
         xhr.send(data);
     } else {
-        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             // first get the current tab id
             var current_tab_id = tabs[0].id
             chrome.tabs.sendMessage(current_tab_id, { todo: "pasteSolution", success: false })

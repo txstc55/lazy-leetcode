@@ -33,7 +33,14 @@ function requestAnswer() {
     var title = document.getElementsByClassName("css-v3d350")[0].textContent;
     questionId = title.split(". ")[0];
     question_name_full = title.split(". ")[1];
-    chrome.runtime.sendMessage({ todo: "fetchAnswer", language: language_map[language.toLowerCase()], questionId: questionId, question_name_full: question_name_full });
+
+    // get the possible function names
+    var defs = document.getElementsByClassName("cm-def");
+    var def_variables = [];
+    for (var i = 0; i < defs.length; i++) {
+        def_variables.push(defs[i].textContent);
+    }
+    chrome.runtime.sendMessage({ todo: "fetchAnswer", language: language_map[language.toLowerCase()], questionId: questionId, question_name_full: question_name_full, defs: def_variables });
 }
 
 // this is a function that sets the button 
