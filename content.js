@@ -64,7 +64,7 @@ function setButtonWithFunction() {
 
 // a floating div for showing the solution, normally hidden
 const solutionDiv = document.createElement('div');
-solutionDiv.setAttribute('style', 'white-space: pre; border: 5px; background-color: rgba(15, 18, 23, 1); color: white; padding: 8px; position: absolute;');
+solutionDiv.setAttribute('style', 'white-space: pre; border: 5px; background-color: rgba(60, 72, 92, 1); color: white; padding: 8px; position: absolute;');
 solutionDiv.style.visibility = "hidden";
 solutionDiv.style.left = 0 + 'px';
 solutionDiv.style.right = "";
