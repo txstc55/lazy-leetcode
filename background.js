@@ -29,7 +29,6 @@ function capitalizeFirstLetter(string) {
 var matched_tab_id = new Set(); // only operate when the tab id matches
 var discuss_post_url = {}; // store the post id which can easily be converted to url
 var discuss_post_selection = {}; // which post to look at now
-var possible_function_names = {}; // the possible function name so that we know what to look for in code section
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.log("Message Request: ", request);
@@ -121,29 +120,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                             discuss_post_url[question_name][request.language].push(nodes[i].node.id);
                         }
 
-                        // we want to generate a list of possible function names
-                        // so that when we look at the solution we know where to look at
-                        // if there are multiple code sections
-                        var question_name_full = request.question_name_full.toLowerCase();
-                        possible_function_names[question_name] = new Set();
-                        possible_function_names[question_name].add(question_name_full.split(" ").join("-"));
-                        possible_function_names[question_name].add(question_name_full.split(" ").join("_"));
-                        var words = question_name_full.split(" ");
-                        var possible_function_name = "";
-                        for (var i = 0; i < words.length; i++) {
-                            possible_function_name += capitalizeFirstLetter(words[i]);
-                        }
-                        possible_function_names[question_name].add(possible_function_name);
-                        possible_function_name = words[0];
-                        for (i = 1; i < words.length; i++) {
-                            possible_function_name += capitalizeFirstLetter(words[i]);
-                        }
-                        for (i = 0; i < request.defs.length; i++) {
-                            possible_function_names[question_name].add(request.defs[i]);
-                        }
-
-                        possible_function_names[question_name].add(possible_function_name);
-                        console.log("Possible function names:", possible_function_names[question_name])
                         console.log("Post ids:", discuss_post_url[question_name][request.language])
                         return_code_result(question_name, request.language);
                     }
