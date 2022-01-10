@@ -1,6 +1,7 @@
 var matched_tab_id = new Set(); // only operate when the tab id matches
 var discuss_post_url = {}; // store the post id which can easily be converted to url
 var discuss_post_selection = {}; // which post to look at now
+var question_name_to_true_id = {}; // because ffs there are two ids, and we need true id of the question
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.log("Message Request: ", request);
@@ -27,7 +28,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     console.log("Accessing again:", question_name, ", with language:", request.language)
                     // we have not accessed this language before
                     // start a new http request
-                    var data = JSON.stringify({
+                    var data_for_posts = JSON.stringify({
                         "operationName": "questionTopicsList",
                         "variables": {
                             "orderBy": "most_votes",
@@ -36,7 +37,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                             "tags": [
                                 request.language
                             ],
-                            "questionId": request.questionId
+                            "questionId": question_name_to_true_id[request.question_name_full]
                         },
                         "query": "query questionTopicsList($questionId: String!, $orderBy: TopicSortingOption, $query: String, $first: Int!, $tags: [String!]) {\n  questionTopicsList(questionId: $questionId, orderBy: $orderBy, query: $query, first: $first, tags: $tags) {\n    ...TopicsList\n    __typename\n  }\n}\n\nfragment TopicsList on TopicConnection {\n  totalNum\n  edges {\n    node {\n      id\n      }}}"
                     });
@@ -58,48 +59,72 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     xhr.open("POST", "https://leetcode.com/graphql");
                     xhr.setRequestHeader("Content-Type", "application/json");
                     xhr.responseType = 'json';
-                    xhr.send(data);
+                    xhr.send(data_for_posts);
                 }
             } else {
                 console.log("First access:", question_name, ", with language:", request.language)
                 // this is the first time we request anything for this language
                 // start a new http request
-                var data = JSON.stringify({
-                    "operationName": "questionTopicsList",
+                // we will need a true id for the problem
+                var data_for_true_id = JSON.stringify({
+                    "operationName": "questionData",
                     "variables": {
-                        "orderBy": "most_votes",
-                        "query": "",
-                        "first": 10,
-                        "tags": [
-                            request.language
-                        ],
-                        "questionId": request.questionId
+                        "titleSlug": request.question_name_full.split(" ").join("-")
                     },
-                    "query": "query questionTopicsList($questionId: String!, $orderBy: TopicSortingOption, $query: String, $first: Int!, $tags: [String!]) {\n  questionTopicsList(questionId: $questionId, orderBy: $orderBy, query: $query, first: $first, tags: $tags) {\n    ...TopicsList\n    __typename\n  }\n}\n\nfragment TopicsList on TopicConnection {\n  totalNum\n  edges {\n    node {\n      id\n      }}}"
+                    "query": "query questionData($titleSlug: String!) {\n  question(titleSlug: $titleSlug) {\n    questionId\n    questionFrontendId\n}\n}\n"
                 });
-                var xhr = new XMLHttpRequest();
-                xhr.withCredentials = true;
-                xhr.addEventListener("readystatechange", function () {
-                    if (this.readyState === 4 && this.status == 200) {
-                        // we want to save the response url stuffs
-                        discuss_post_url[question_name] = {};
-                        discuss_post_url[question_name][request.language] = [];
-                        discuss_post_selection[question_name] = {};
-                        discuss_post_selection[question_name][request.language] = 0;
-                        let nodes = this.response.data.questionTopicsList.edges;
-                        // push the post ids to a list for accessing
-                        for (var i = 0; i < nodes.length; i++) {
-                            discuss_post_url[question_name][request.language].push(nodes[i].node.id);
-                        }
 
-                        console.log("Post ids:", discuss_post_url[question_name][request.language])
-                        return_code_result(question_name, request.language);
+                var xhr_for_true_id = new XMLHttpRequest();
+                xhr_for_true_id.withCredentials = true;
+
+                xhr_for_true_id.addEventListener("readystatechange", function () {
+                    if (this.readyState === 4 && this.status == 200) {
+                        // store the true question id
+                        question_name_to_true_id[request.question_name_full] = this.response.data.question.questionId;
+                        // now we get the list of topics for this question for this language
+                        var data_for_posts = JSON.stringify({
+                            "operationName": "questionTopicsList",
+                            "variables": {
+                                "orderBy": "most_votes",
+                                "query": "",
+                                "first": 10,
+                                "tags": [
+                                    request.language
+                                ],
+                                "questionId": question_name_to_true_id[request.question_name_full]
+                            },
+                            "query": "query questionTopicsList($questionId: String!, $orderBy: TopicSortingOption, $query: String, $first: Int!, $tags: [String!]) {\n  questionTopicsList(questionId: $questionId, orderBy: $orderBy, query: $query, first: $first, tags: $tags) {\n    ...TopicsList\n    __typename\n  }\n}\n\nfragment TopicsList on TopicConnection {\n  totalNum\n  edges {\n    node {\n      id\n      }}}"
+                        });
+                        var xhr = new XMLHttpRequest();
+                        xhr.withCredentials = true;
+                        xhr.addEventListener("readystatechange", function () {
+                            if (this.readyState === 4 && this.status == 200) {
+                                // we want to save the response url stuffs
+                                discuss_post_url[question_name] = {};
+                                discuss_post_url[question_name][request.language] = [];
+                                discuss_post_selection[question_name] = {};
+                                discuss_post_selection[question_name][request.language] = 0;
+                                let nodes = this.response.data.questionTopicsList.edges;
+                                // push the post ids to a list for accessing
+                                for (var i = 0; i < nodes.length; i++) {
+                                    discuss_post_url[question_name][request.language].push(nodes[i].node.id);
+                                }
+
+                                console.log("Post ids:", discuss_post_url[question_name][request.language])
+                                return_code_result(question_name, request.language);
+                            }
+                        });
+                        xhr.open("POST", "https://leetcode.com/graphql");
+                        xhr.setRequestHeader("Content-Type", "application/json");
+                        xhr.responseType = 'json';
+                        xhr.send(data_for_posts);
                     }
                 });
-                xhr.open("POST", "https://leetcode.com/graphql");
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.responseType = 'json';
-                xhr.send(data);
+
+                xhr_for_true_id.open("POST", "https://leetcode.com/graphql");
+                xhr_for_true_id.setRequestHeader("content-type", "application/json");
+                xhr_for_true_id.responseType = 'json';
+                xhr_for_true_id.send(data_for_true_id);
             }
 
         });

@@ -28,12 +28,12 @@ language_map = {
 } // in case the name doesn't match
 
 function requestAnswer() {
+    // we just need the full question name, then send a post request to get the true id of the question
     var language = document.getElementsByClassName("ant-select-selection-selected-value")[0].textContent;
     console.log("Using:", language);
     var title = document.getElementsByClassName("css-v3d350")[0].textContent;
-    questionId = title.split(". ")[0];
     question_name_full = title.split(". ")[1];
-    chrome.runtime.sendMessage({ todo: "fetchAnswer", language: language_map[language.toLowerCase()], questionId: questionId, question_name_full: question_name_full });
+    chrome.runtime.sendMessage({ todo: "fetchAnswer", language: language_map[language.toLowerCase()], question_name_full: question_name_full.toLowerCase() });
 }
 
 // this is a function that sets the button 
@@ -73,15 +73,18 @@ solutionDiv.style.visibility = "hidden";
 solutionDiv.id = "solutionDiv";
 document.body.appendChild(solutionDiv);
 
+// text div before code
 const solutionDivText = document.createElement('h4');
 solutionDivText.innerText = "Here you go, a solution";
 solutionDivText.setAttribute('style', 'color: white;');
 solutionDiv.appendChild(solutionDivText);
 
+// containing code, we will change the innerhtml
 const codeDiv = document.createElement('div');
 codeDiv.setAttribute('style', 'overflow-y: scroll; overflow-x: scroll');
 solutionDiv.appendChild(codeDiv);
 
+// another one button
 var anotherOne = document.createElement('input');
 anotherOne.type = "button";
 anotherOne.value = "Another One";
@@ -90,6 +93,7 @@ anotherOne.addEventListener("click", requestAnswer);
 anotherOne.setAttribute('style', 'color: black; float: left')
 solutionDiv.appendChild(anotherOne);
 
+// close div button
 var closeDiv = document.createElement('input');
 closeDiv.type = "button";
 closeDiv.value = "Close";
