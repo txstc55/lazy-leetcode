@@ -1,31 +1,3 @@
-// var support = (function () {
-//     if (!window.DOMParser) return false;
-//     var parser = new DOMParser();
-//     try {
-//         parser.parseFromString('x', 'text/html');
-//     } catch (err) {
-//         return false;
-//     }
-//     return true;
-// })();
-// function string_to_html(str) {
-//     // check for DOMParser support
-//     if (support) {
-//         var parser = new DOMParser();
-//         var doc = parser.parseFromString(str, 'text/html');
-//         return doc.body.innerHTML;
-//     }
-//     // Otherwise, create div and append HTML
-//     var dom = document.createElement('div');
-//     dom.innerHTML = str;
-//     return dom;
-// };
-
-// for capitalize first letter
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
 var matched_tab_id = new Set(); // only operate when the tab id matches
 var discuss_post_url = {}; // store the post id which can easily be converted to url
 var discuss_post_selection = {}; // which post to look at now
