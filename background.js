@@ -165,6 +165,7 @@ function return_code_result(question_name, language) {
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     // first get the current tab id
                     var current_tab_id = tabs[0].id;
+                    // now we convert the whole thing from markdown to html
                     var converter = new showdown.Converter();
                     content = content.replaceAll("\\n", "\n").replaceAll("\\t", "  ").replaceAll("\\'", "'").replaceAll('\\"', '"').trim();
                     var html_code = converter.makeHtml(content);
@@ -172,6 +173,7 @@ function return_code_result(question_name, language) {
                     chrome.tabs.sendMessage(current_tab_id, { todo: "pasteSolution", solution: html_code, success: true })
                 });
                 // add 1 to the selection so next time we will look at another one
+                // if reach the end, loop
                 discuss_post_selection[question_name][language] += 1;
                 discuss_post_selection[question_name][language] %= discuss_post_url[question_name][language].length;
             }
