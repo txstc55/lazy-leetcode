@@ -3,6 +3,7 @@
     "name": "Lazy Leetcode",
     "description": "Just be lazy, take the answers from discussion",
     "version": "1.0",
+    "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
     "icons": {
         "128": "seagull.png"
     },
@@ -15,20 +16,22 @@
         "page": "background.html",
         "persistent": false
     },
-    "content_scripts": [{
-        "matches": [
-            "https://leetcode.com/problems/*"
-        ],
-        "js": [
-            "content.js",
-            "jquery-3.6.0.min.js",
-            "showdown-1.9.0.min.js",
-            "highlight.min.js"
-        ],
-        "css": [
-            "github-dark.css"
-        ]
-    }],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://leetcode.com/problems/*"
+            ],
+            "js": [
+                "content.js",
+                "jquery-3.6.0.min.js",
+                "showdown-1.9.0.min.js",
+                "highlight.min.js"
+            ],
+            "css": [
+                "github-dark.css"
+            ]
+        }
+    ],
     "permissions": [
         "tabs",
         "https://leetcode.com/problems/*"
