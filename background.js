@@ -188,52 +188,13 @@ function return_code_result(question_name, language) {
         xhr.addEventListener("readystatechange", function () {
             if (this.readyState === 4 && this.status == 200) {
                 var content = this.response.data.topic.post.content;
-                console.log(content);
-                // var content_split = content.split("```");
-                // if (content_split.length == 1) {
-                content_split = content.split("\\n\\n");
-                // }
-                var final_solution = ""; // because we may have splitted it into multiple pieces
-                var left_curly_count = 0; // count of {
-                var right_curly_count = 0; // count of }
-                // var left_square_count = 0; // count of [
-                // var right_square_count = 0; // count of ]
-                // var left_brace_count = 0; // count of (
-                // var right_brace_count = 0; // count of )
-                var found_function_name = false;
-                for (var i = 0; i < content_split.length; i++) {
-                    var solution = content_split[i];
-                    if (!found_function_name) {
-                        // check if the string contains a possible function name
-                        for (const possible_function_name of possible_function_names[question_name]) {
-                            if (solution.includes(possible_function_name)) {
-                                final_solution += solution;
-                                left_curly_count += (solution.match(new RegExp('{', 'g')) || []).length;
-                                right_curly_count += (solution.match(new RegExp('}', 'g')) || []).length;
-                                found_function_name = true;
-                            }
-                        }
-                    } else if (left_curly_count > right_curly_count) {
-                        final_solution += "\n";
-                        final_solution += solution;
-                        left_curly_count += (solution.match(new RegExp('{', 'g')) || []).length;
-                        right_curly_count += (solution.match(new RegExp('}', 'g')) || []).length;
-                        if (left_curly_count == right_curly_count) {
-                            break;
-                        }
-                    }
-                }
+                // console.log(content);
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     // first get the current tab id
                     var current_tab_id = tabs[0].id;
                     var converter = new showdown.Converter();
-                    converter.setOption('backslashEscapesHTMLTags', false);
-                    if (!final_solution.includes("```")) {
-                        final_solution = "```\n" + final_solution + "\n```\n"
-                    }
-                    final_solution = final_solution.replaceAll("\\n", "\n").replaceAll("\\t", "  ").trim();
-                    var html_code = converter.makeHtml(final_solution);
-                    console.log(final_solution);
+                    content = content.replaceAll("\\n", "\n").replaceAll("\\t", "  ").replaceAll("\\'", "'").replaceAll('\\"', '"').trim();
+                    var html_code = converter.makeHtml(content);
                     console.log(html_code); // this will produce the <code></code> tag element
                     chrome.tabs.sendMessage(current_tab_id, { todo: "pasteSolution", solution: html_code, success: true })
                 });
