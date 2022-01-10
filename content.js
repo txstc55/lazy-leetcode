@@ -86,7 +86,7 @@ solutionDivText.setAttribute('style', 'color: white;');
 solutionDiv.appendChild(solutionDivText);
 
 const codeDiv = document.createElement('div');
-codeDiv.setAttribute('style', 'overflow-y: scroll;');
+codeDiv.setAttribute('style', 'overflow-y: scroll; overflow-x: scroll');
 solutionDiv.appendChild(codeDiv);
 
 var anotherOne = document.createElement('input');
@@ -127,6 +127,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             solutionDiv.style.left = rect.left + "px";
             solutionDiv.style.top = ((rect.top + rect.bottom) / 2) + "px";
             codeDiv.style.height = (Math.floor((rect.bottom - rect.top) * 0.4)) + "px";
+            codeDiv.style.width = (Math.floor((rect.right - rect.left) * 0.8)) + "px";
         }
     } else if (request.todo == "hideSolutionDiv") {
         // hide this when go to another question or page transfer
